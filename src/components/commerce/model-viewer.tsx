@@ -12,7 +12,7 @@ type ModelViewerProps = {
   title: string;
 };
 
-const CAMERA_OFFSET = new THREE.Vector3(2.8, 1.52, 5.85);
+const CAMERA_DIRECTION = new THREE.Vector3(2.55, 1.42, 4.9).normalize();
 const DEFAULT_TARGET = new THREE.Vector3(0, 0.48, 0);
 const CABINET_FINISH_MATERIAL_PATTERN = /^(material|door|shutter|front|drawer)/i;
 
@@ -21,7 +21,7 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
   const mountRef = useRef<HTMLDivElement | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
-  const homeCameraRef = useRef(DEFAULT_TARGET.clone().add(CAMERA_OFFSET));
+  const homeCameraRef = useRef(DEFAULT_TARGET.clone().add(CAMERA_DIRECTION.clone().multiplyScalar(6.2)));
   const homeTargetRef = useRef(DEFAULT_TARGET.clone());
   const finishColorRef = useRef(finishColor);
   const finishMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
@@ -39,6 +39,7 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
     let frame = 0;
     let disposed = false;
     let model: THREE.Object3D | null = null;
+    let fittedModelBox: THREE.Box3 | null = null;
     finishMaterialsRef.current = [];
 
     const scene = new THREE.Scene();
@@ -56,6 +57,8 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.domElement.style.cursor = "grab";
+    renderer.domElement.style.height = "100%";
+    renderer.domElement.style.width = "100%";
     mount.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -65,8 +68,8 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
     controls.enableDamping = true;
     controls.enablePan = false;
     controls.enableZoom = true;
-    controls.maxDistance = 8;
-    controls.minDistance = 2;
+    controls.maxDistance = 10;
+    controls.minDistance = 2.2;
     controls.target.copy(homeTargetRef.current);
 
     const setGrabbing = () => {
@@ -162,21 +165,16 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
         displayGroup.updateWorldMatrix(true, true);
         model.updateWorldMatrix(true, true);
 
-        const worldBox = new THREE.Box3().setFromObject(model);
-        const worldSize = worldBox.getSize(new THREE.Vector3());
-        const worldCenter = worldBox.getCenter(new THREE.Vector3());
-        const nextTarget = new THREE.Vector3(
-          worldCenter.x,
-          worldBox.min.y + worldSize.y * 0.52,
-          worldCenter.z,
-        );
-        const nextCamera = nextTarget.clone().add(CAMERA_OFFSET);
-
-        homeTargetRef.current.copy(nextTarget);
-        homeCameraRef.current.copy(nextCamera);
-        camera.position.copy(nextCamera);
-        controls.target.copy(nextTarget);
-        controls.update();
+        fittedModelBox = new THREE.Box3().setFromObject(model);
+        fitModelToViewport({
+          box: fittedModelBox,
+          camera,
+          controls,
+          height: mount.clientHeight,
+          homeCamera: homeCameraRef.current,
+          homeTarget: homeTargetRef.current,
+          width: mount.clientWidth,
+        });
         setStatus("ready");
       },
       undefined,
@@ -194,6 +192,18 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
       camera.aspect = width / Math.max(height, 1);
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+
+      if (fittedModelBox) {
+        fitModelToViewport({
+          box: fittedModelBox,
+          camera,
+          controls,
+          height,
+          homeCamera: homeCameraRef.current,
+          homeTarget: homeTargetRef.current,
+          width,
+        });
+      }
     };
 
     const observer = new ResizeObserver(resize);
@@ -339,27 +349,27 @@ export function ModelViewer({ code, finishColor, modelUrl, title }: ModelViewerP
   return (
     <div
       ref={rootRef}
-      className="relative min-h-[26rem] overflow-hidden rounded-lg border bg-accent lg:min-h-[34rem] [&:fullscreen]:min-h-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
+      className="relative min-h-[min(34rem,72svh)] overflow-hidden rounded-lg border bg-accent lg:min-h-[34rem] [&:fullscreen]:min-h-screen [&:fullscreen]:rounded-none [&:fullscreen]:border-0"
     >
       <div ref={mountRef} className="absolute inset-0" aria-label={`${title} 3D model`} />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-4 sm:p-5">
-        <div className="rounded-sm border bg-white/86 px-3 py-2 backdrop-blur-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3 sm:gap-4 sm:p-5">
+        <div className="max-w-[calc(100%-4rem)] rounded-sm border bg-white/86 px-3 py-2 backdrop-blur-sm">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs">
             Interactive module
           </p>
-          <p className="mt-1 font-heading text-2xl font-light">{code}</p>
+          <p className="mt-1 truncate font-heading text-lg font-light sm:text-2xl">{code}</p>
         </div>
-        <div className="grid size-11 place-items-center rounded-full border bg-white/86 backdrop-blur-sm">
-          <Cuboid className="size-5" aria-hidden="true" />
+        <div className="grid size-10 shrink-0 place-items-center rounded-full border bg-white/86 backdrop-blur-sm sm:size-11">
+          <Cuboid className="size-4 sm:size-5" aria-hidden="true" />
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 p-4 sm:p-5 md:flex-row md:items-end md:justify-between">
-        <p className="rounded-sm border bg-white/86 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur-sm">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 p-3 sm:p-5 md:flex-row md:items-end md:justify-between">
+        <p className="w-fit rounded-sm border bg-white/86 px-3 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur-sm sm:text-xs">
           {status === "loading" ? "Loading GLB" : status === "error" ? "Model unavailable" : "Drag to inspect"}
         </p>
-        <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+        <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
           <ViewerButton
             active={autoRotate}
             icon={Rotate3D}
@@ -422,6 +432,55 @@ function toFinishMaterial(material: THREE.Material) {
   });
 }
 
+function fitModelToViewport({
+  box,
+  camera,
+  controls,
+  height,
+  homeCamera,
+  homeTarget,
+  width,
+}: {
+  box: THREE.Box3;
+  camera: THREE.PerspectiveCamera;
+  controls: OrbitControls;
+  height: number;
+  homeCamera: THREE.Vector3;
+  homeTarget: THREE.Vector3;
+  width: number;
+}) {
+  const safeHeight = Math.max(height, 1);
+  const safeWidth = Math.max(width, 1);
+  const aspect = safeWidth / safeHeight;
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const target = new THREE.Vector3(
+    center.x,
+    box.min.y + size.y * 0.52,
+    center.z,
+  );
+  const radius = Math.max(size.length() * 0.5, 1);
+  const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+  const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect);
+  const fitFov = Math.min(verticalFov, horizontalFov);
+  const mobilePadding = aspect < 0.82 ? 1.55 : 1.25;
+  const distance = THREE.MathUtils.clamp(
+    (radius / Math.sin(fitFov / 2)) * mobilePadding,
+    4.2,
+    10,
+  );
+  const nextCamera = target.clone().add(CAMERA_DIRECTION.clone().multiplyScalar(distance));
+
+  homeTarget.copy(target);
+  homeCamera.copy(nextCamera);
+  camera.position.copy(nextCamera);
+  controls.target.copy(target);
+  controls.minDistance = Math.max(distance * 0.42, 2);
+  controls.maxDistance = Math.max(distance * 1.8, 7);
+  camera.updateProjectionMatrix();
+  controls.update();
+}
+
 function ViewerButton({
   active = false,
   icon: Icon,
@@ -437,7 +496,7 @@ function ViewerButton({
     <button
       aria-label={label}
       aria-pressed={active}
-      className={`group grid size-10 place-items-center rounded-sm border text-foreground backdrop-blur-sm transition-colors duration-smooth hover:bg-primary hover:text-primary-foreground ${
+      className={`group grid size-9 place-items-center rounded-sm border text-foreground backdrop-blur-sm transition-colors duration-smooth hover:bg-primary hover:text-primary-foreground sm:size-10 ${
         active ? "bg-primary text-primary-foreground" : "bg-white/86"
       }`}
       onClick={onClick}

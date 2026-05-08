@@ -22,6 +22,13 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHomeRoute, setIsHomeRoute] = useState(() => !window.location.hash);
   const shouldUseHeroContrast = isHomeRoute && !isScrolled && !mobileOpen;
+  const headerIconClass = `${
+    shouldUseHeroContrast
+      ? "border-white/18 text-white hover:bg-white hover:text-foreground"
+      : isScrolled
+        ? ""
+        : "border-border text-foreground hover:bg-background"
+  } max-sm:size-10`;
 
   useEffect(() => {
     const onScroll = () => {
@@ -59,13 +66,13 @@ export function Header() {
             : "border-border bg-[var(--color-accent)] text-foreground shadow-soft"
       }`}
     >
-      <Container className="grid h-[5rem] grid-cols-[1fr_auto_1fr] items-center gap-4">
+      <Container className="grid h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:h-[5rem] xl:grid-cols-[1fr_auto_1fr] xl:gap-4">
         <a
-          className="flex min-w-0 uppercase items-center justify-self-start font-['Montserrat'] text-[1.65rem] font-bold tracking-[0.01em]"
+          className="flex min-w-0 items-center justify-self-start overflow-hidden whitespace-nowrap font-['Montserrat'] text-[clamp(1.05rem,6.1vw,1.65rem)] font-bold uppercase tracking-[0.01em] sm:text-[1.65rem]"
           href={routes.home}
           aria-label="Space Mint home"
         >
-          <span className="mr-1.5 text-[#626262]">Space</span>
+          <span className="mr-1 text-[#626262] sm:mr-1.5">Space</span>
           <span className="text-[#86a08d]">Mint</span>
         </a>
 
@@ -79,25 +86,11 @@ export function Header() {
         />
 
         <div className="flex items-center justify-self-end gap-2">
-          <ProductSearchModal
-            triggerClassName={
-              shouldUseHeroContrast
-                ? "border-white/18 text-white hover:bg-white hover:text-foreground"
-                : isScrolled
-                  ? ""
-                  : "border-border text-foreground hover:bg-background"
-            }
-          />
+          <ProductSearchModal triggerClassName={headerIconClass} />
           <Button
             asChild
             aria-label="Cart"
-            className={
-              shouldUseHeroContrast
-                ? "border-white/18 text-white hover:bg-white hover:text-foreground"
-                : isScrolled
-                  ? ""
-                  : "border-border text-foreground hover:bg-background"
-            }
+            className={headerIconClass}
             size="icon"
             variant="ghost"
           >
@@ -120,7 +113,7 @@ export function Header() {
                     : isScrolled
                       ? ""
                       : "border-border bg-accent text-foreground hover:bg-background"
-                }`}
+                } max-sm:size-10`}
                 size="icon"
                 variant="secondary"
               >

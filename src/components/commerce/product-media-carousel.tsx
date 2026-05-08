@@ -90,7 +90,14 @@ export function ProductMediaCarousel({
 
   return (
     <div className="grid gap-3">
-      <div className="relative h-[26rem] overflow-hidden rounded-lg border bg-accent lg:h-[34rem]">
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-lg border bg-accent",
+          activeSlide.kind === "model"
+            ? "min-h-[min(34rem,72svh)] lg:min-h-[34rem]"
+            : "h-[26rem] lg:h-[34rem]",
+        )}
+      >
         {activeSlide.kind === "model" ? (
           modelUrl ? (
             <Suspense fallback={<ModelViewerFallback code={code} />}>
