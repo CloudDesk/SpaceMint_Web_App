@@ -1654,6 +1654,17 @@ export function App() {
                       <span key={highlight}>{highlight}</span>
                     ))}
                   </div>
+                  <button
+                    className="product-card-cart-button"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      addProductToCart(product, getKitchenProductInitialOption(product), productColourOptions[0]);
+                    }}
+                  >
+                    Add to Cart
+                    <ShoppingBag size={16} />
+                  </button>
                 </div>
               </article>
             ))}
