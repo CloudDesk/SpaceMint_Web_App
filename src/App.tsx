@@ -1484,7 +1484,7 @@ export function App() {
         </section>
           </>
         ) : currentPage === "kitchen" ? (
-          <>
+          <div className="kitchen-page-content">
             <section className="kitchen-page-hero">
               <div>
                 <button className="back-link" type="button" onClick={navigateHome}>
@@ -1741,7 +1741,7 @@ export function App() {
             </div>
           </div>
         </section>
-          </>
+          </div>
         ) : currentPage === "wardrobe" ? (
           <>
             <section className="kitchen-page-hero wardrobe-page-hero">

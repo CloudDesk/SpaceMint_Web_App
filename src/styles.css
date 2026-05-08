@@ -3061,6 +3061,27 @@ button {
     padding: 72px 18px;
   }
 
+  .kitchen-page-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kitchen-page-content > .kitchen-page-hero {
+    order: 1;
+  }
+
+  .kitchen-page-content > .kitchen-catalog-section {
+    order: 2;
+  }
+
+  .kitchen-page-content > .kitchen-section {
+    order: 3;
+  }
+
+  .kitchen-page-content > .product-section {
+    order: 4;
+  }
+
   .home-space-media {
     aspect-ratio: 4 / 3;
   }
