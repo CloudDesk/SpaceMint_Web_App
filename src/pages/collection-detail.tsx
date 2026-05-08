@@ -1,20 +1,18 @@
 import { ArrowLeft, ArrowUpRight, Grid2X2, Layers3 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { MouseEvent } from "react";
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import type { CollectionPage } from "@/data/collections";
 import { Container } from "@/components/primitives/container";
 import { Section } from "@/components/primitives/section";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
 import { easeLuxury, fadeUp, staggerContainer } from "@/lib/animation";
-import { navigateToHash, scrollToPageTop } from "@/lib/scroll";
+import { navigateToHash } from "@/lib/scroll";
+
+const collectionProductVisibleCounts = new Map<string, number>();
 
 export function CollectionDetailPage({ collection }: { collection: CollectionPage }) {
-  useLayoutEffect(() => {
-    scrollToPageTop({ defer: true });
-  }, [collection.id]);
-
   const shouldShowProductsFirst = [
     "kitchens",
     "living-room-furniture",
@@ -302,9 +300,22 @@ function ProductsSection({
 }) {
   const initialVisibleCount = collection.id === "kitchens" ? 8 : collection.products.length;
   const visibleStep = collection.id === "kitchens" ? 8 : collection.products.length;
-  const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
+  const [visibleCount, setVisibleCount] = useState(() =>
+    Math.min(
+      collectionProductVisibleCounts.get(collection.id) ?? initialVisibleCount,
+      collection.products.length,
+    ),
+  );
   const visibleProducts = collection.products.slice(0, visibleCount);
   const hasMoreProducts = visibleCount < collection.products.length;
+  const hasLoadedMoreProducts = visibleCount > initialVisibleCount;
+  const showMoreProducts = () => {
+    setVisibleCount((currentCount) => {
+      const nextCount = Math.min(currentCount + visibleStep, collection.products.length);
+      collectionProductVisibleCounts.set(collection.id, nextCount);
+      return nextCount;
+    });
+  };
 
   return (
     <Section className={muted ? "border-t bg-muted" : undefined} spacing="sm">
@@ -333,8 +344,10 @@ function ProductsSection({
         </motion.div>
 
         <motion.div
+          animate={hasLoadedMoreProducts ? "visible" : undefined}
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
           initial="hidden"
+          layout
           variants={staggerContainer}
           viewport={{ once: true, amount: 0.14 }}
           whileInView="visible"
@@ -344,6 +357,7 @@ function ProductsSection({
               className="group overflow-hidden rounded-lg border bg-background"
               href={product.href}
               key={product.id}
+              layout
               onClick={(event) => handleCollectionProductNavigation(event, product.href)}
               variants={fadeUp}
             >
@@ -376,11 +390,7 @@ function ProductsSection({
             transition={{ duration: 0.42, ease: easeLuxury }}
           >
             <Button
-              onClick={() =>
-                setVisibleCount((currentCount) =>
-                  Math.min(currentCount + visibleStep, collection.products.length),
-                )
-              }
+              onClick={showMoreProducts}
               variant="secondary"
             >
               View More

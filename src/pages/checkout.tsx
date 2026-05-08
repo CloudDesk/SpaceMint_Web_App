@@ -8,7 +8,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import type { FormEvent } from "react";
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { Container } from "@/components/primitives/container";
 import { Section } from "@/components/primitives/section";
 import { Button } from "@/components/ui/button";
@@ -53,10 +53,6 @@ export function CheckoutPage() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("upi");
   const [placedOrder, setPlacedOrder] = useState<StoredOrder | null>(null);
-
-  useLayoutEffect(() => {
-    scrollToPageTop({ defer: true });
-  }, []);
 
   const handleFieldChange = (field: keyof CheckoutDetails, value: string) => {
     const nextFormData = {

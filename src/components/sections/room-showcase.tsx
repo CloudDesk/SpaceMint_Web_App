@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Container } from "@/components/primitives/container";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
+import { webImages } from "@/data/web-images";
 import { fadeUp, staggerContainer } from "@/lib/animation";
 import { cn } from "@/lib/utils";
 
@@ -14,8 +15,7 @@ const roomFeatures = [
     eyebrow: "Modular kitchens",
     description: "Cabinets, countertops, utility storage, shutters, and stainless modules.",
     price: "From Rs. 4.8L",
-    image:
-      "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1600&q=84",
+    image: webImages.kitchenModular,
     size: "featured",
   },
   {
@@ -25,8 +25,7 @@ const roomFeatures = [
     eyebrow: "Living room",
     description: "TV units, sofa walls, consoles, display shelves, and concealed storage.",
     price: "From Rs. 2.2L",
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=84",
+    image: webImages.tvUnit,
     size: "compact",
   },
   {
@@ -36,8 +35,7 @@ const roomFeatures = [
     eyebrow: "Bedroom",
     description: "Wardrobes, storage beds, dressers, side tables, and room-fitted furniture.",
     price: "From Rs. 1.6L",
-    image:
-      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=84",
+    image: webImages.wardrobe,
     size: "compact",
   },
 ] as const;

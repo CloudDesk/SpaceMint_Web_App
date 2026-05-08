@@ -1,4 +1,4 @@
-import { Menu, Search, ShoppingBag } from "lucide-react";
+import { Menu, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
@@ -13,6 +13,7 @@ import {
 import { Container } from "@/components/primitives/container";
 import { MegaNavigation } from "@/components/layout/mega-navigation";
 import { Navigation } from "@/components/layout/navigation";
+import { ProductSearchModal } from "@/components/layout/product-search-modal";
 import { routes } from "@/config/routes";
 
 export function Header() {
@@ -60,7 +61,7 @@ export function Header() {
     >
       <Container className="grid h-[5rem] grid-cols-[1fr_auto_1fr] items-center gap-4">
         <a
-          className="flex min-w-0 uppercase items-center justify-self-start font-['Montserrat'] text-[1.65rem] font-medium tracking-[0.01em]"
+          className="flex min-w-0 uppercase items-center justify-self-start font-['Montserrat'] text-[1.65rem] font-bold tracking-[0.01em]"
           href={routes.home}
           aria-label="Space Mint home"
         >
@@ -78,20 +79,15 @@ export function Header() {
         />
 
         <div className="flex items-center justify-self-end gap-2">
-          <Button
-            aria-label="Search"
-            className={
+          <ProductSearchModal
+            triggerClassName={
               shouldUseHeroContrast
                 ? "border-white/18 text-white hover:bg-white hover:text-foreground"
                 : isScrolled
                   ? ""
                   : "border-border text-foreground hover:bg-background"
             }
-            size="icon"
-            variant="ghost"
-          >
-            <Search className="size-4" aria-hidden="true" />
-          </Button>
+          />
           <Button
             asChild
             aria-label="Cart"

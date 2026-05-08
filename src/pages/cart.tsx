@@ -1,18 +1,12 @@
 import { ArrowLeft, ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
-import { useLayoutEffect } from "react";
 import { Container } from "@/components/primitives/container";
 import { Section } from "@/components/primitives/section";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
 import { routes } from "@/config/routes";
-import { scrollToPageTop } from "@/lib/scroll";
 
 export function CartPage() {
   const { cartCount, clearCart, items, removeItem, updateQuantity } = useCart();
-
-  useLayoutEffect(() => {
-    scrollToPageTop({ defer: true });
-  }, []);
 
   return (
     <article className="bg-background pt-20">

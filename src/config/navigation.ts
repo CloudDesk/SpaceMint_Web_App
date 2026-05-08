@@ -1,6 +1,7 @@
 import products from "@/data/spacemint-products.json";
 import { kitchenImages, wardrobeImages } from "@/data/local-assets";
 import { routes } from "@/config/routes";
+import { webImages } from "@/data/web-images";
 
 export type NavigationItem = {
   id: string;
@@ -99,8 +100,7 @@ export const megaMenuSections: MegaMenuSection[] = [
     eyebrow: "Living systems",
     href: routes.collection("living-room-furniture"),
     id: "living-room-furniture",
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=82",
+    image: webImages.livingRoom,
     label: "Living Room Furniture",
     showInFooter: true,
     showInHeader: true,
@@ -176,8 +176,7 @@ export const megaMenuSections: MegaMenuSection[] = [
     eyebrow: "Loose + fitted pieces",
     href: routes.collection("other-furniture"),
     id: "other-furniture",
-    image:
-      "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=900&q=82",
+    image: webImages.otherFurniture,
     label: "Other Furniture",
     showInFooter: false,
     showInHeader: true,

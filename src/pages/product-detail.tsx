@@ -7,12 +7,14 @@ import {
   Layers3,
   Ruler,
   ShieldCheck,
+  ShoppingBag,
+  SlidersHorizontal,
   Sparkles,
   Wrench,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { MouseEvent } from "react";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import products from "@/data/spacemint-products.json";
 import { getProductModelLoader } from "@/data/product-models";
 import { ProductMediaCarousel } from "@/components/commerce/product-media-carousel";
@@ -30,7 +32,7 @@ import {
   ModalTrigger,
 } from "@/components/ui/modal";
 import { fadeUp, staggerContainer } from "@/lib/animation";
-import { navigateToHash, scrollToElement, scrollToPageTop } from "@/lib/scroll";
+import { navigateToHash, scrollToElement } from "@/lib/scroll";
 
 type Product = (typeof products)[number];
 
@@ -187,10 +189,6 @@ export function ProductDetailPage({ product }: { product: Product }) {
     };
   }, [modelLoader, product.id]);
 
-  useLayoutEffect(() => {
-    scrollToPageTop({ defer: true });
-  }, [product.id]);
-
   return (
     <article className="bg-background pt-20">
       <Container className="py-6">
@@ -241,11 +239,12 @@ export function ProductDetailPage({ product }: { product: Product }) {
               <SpecItem icon={Box} label="Finish" value={product.specs.finish ?? "Laminated"} />
             </motion.div>
 
-            <motion.div className="flex flex-col gap-3 sm:flex-row" variants={fadeUp}>
+            <motion.div className="grid gap-3 sm:grid-cols-2" variants={fadeUp}>
               {/*
               <Button size="lg">Request Quote</Button>
               */}
               <Button
+                className="group h-14 w-full justify-between px-5 shadow-[0_18px_42px_rgba(17,17,17,0.18)] hover:-translate-y-0.5"
                 onClick={() =>
                   addItem({
                     category: product.category,
@@ -258,11 +257,17 @@ export function ProductDetailPage({ product }: { product: Product }) {
                 }
                 size="lg"
               >
-                Add to Cart
+                <span className="flex items-center gap-3">
+                  <span className="grid size-8 place-items-center rounded-sm bg-white/12 transition-colors group-hover:bg-white/18">
+                    <ShoppingBag className="size-4" aria-hidden="true" />
+                  </span>
+                  Add to Cart
+                </span>
               </Button>
               <VariantChooserModal
                 currentProduct={product}
                 key={product.id}
+                triggerClassName="group h-14 w-full justify-between border-foreground/18 bg-background px-5 hover:-translate-y-0.5 hover:border-foreground hover:bg-accent"
                 variantGroups={variantGroups}
               />
               {/*
@@ -351,9 +356,11 @@ export function ProductDetailPage({ product }: { product: Product }) {
 
 function VariantChooserModal({
   currentProduct,
+  triggerClassName,
   variantGroups,
 }: {
   currentProduct: Product;
+  triggerClassName?: string;
   variantGroups: Array<{ name: string; items: Product[] }>;
 }) {
   const { addItem } = useCart();
@@ -388,8 +395,13 @@ function VariantChooserModal({
   return (
     <Modal>
       <ModalTrigger asChild>
-        <Button size="lg" variant="secondary">
-          Choose Variant
+        <Button className={triggerClassName} size="lg" variant="secondary">
+          <span className="flex items-center gap-3">
+            <span className="grid size-8 place-items-center rounded-sm border bg-background transition-colors group-hover:border-foreground">
+              <SlidersHorizontal className="size-4" aria-hidden="true" />
+            </span>
+            Choose Variant
+          </span>
         </Button>
       </ModalTrigger>
       <ModalContent className="top-2 h-[calc(100dvh-1rem)] max-h-none w-[calc(100vw-1rem)] max-w-[min(1720px,98vw)] translate-y-0 gap-0 overflow-hidden p-0">

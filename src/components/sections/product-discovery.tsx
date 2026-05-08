@@ -3,44 +3,39 @@ import { motion } from "framer-motion";
 import { Container } from "@/components/primitives/container";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
+import { webImages } from "@/data/web-images";
 import { fadeUp, staggerContainer } from "@/lib/animation";
 
 const shopCategories = [
   {
     name: "Modular Kitchens",
     href: routes.collection("kitchens"),
-    image:
-      "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=900&q=82",
+    image: webImages.kitchenModular,
   },
   {
     name: "Living Room Furniture",
     href: routes.collection("living-room-furniture"),
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=82",
+    image: webImages.livingRoom,
   },
   {
     name: "Bedroom Wardrobes",
     href: routes.collection("bedroom-wardrobes"),
-    image:
-      "https://images.unsplash.com/photo-1615873968403-89e068629265?auto=format&fit=crop&w=900&q=82",
+    image: webImages.wardrobe,
   },
   {
     name: "TV Units",
     href: routes.collection("living-room-furniture"),
-    image:
-      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=82",
+    image: webImages.tvUnit,
   },
   {
     name: "Beds & Side Tables",
     href: routes.collection("bedroom-wardrobes"),
-    image:
-      "https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?auto=format&fit=crop&w=900&q=82",
+    image: webImages.bedStorage,
   },
   {
     name: "Other Furniture",
     href: routes.collection("other-furniture"),
-    image:
-      "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=900&q=82",
+    image: webImages.otherFurniture,
   },
 ] as const;
 
@@ -49,29 +44,25 @@ const topSystems = [
     name: "Luxe Steel Kitchen",
     category: "Kitchen",
     price: "From Rs. 4.8L",
-    image:
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1100&q=84",
+    image: webImages.kitchenModular,
   },
   {
     name: "Full Wall Wardrobe",
     category: "Bedroom Wardrobes",
     price: "From Rs. 2.2L",
-    image:
-      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1100&q=84",
+    image: webImages.wardrobeWide,
   },
   {
     name: "Floating TV System",
     category: "Living Room Furniture",
     price: "From Rs. 1.6L",
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1100&q=84",
+    image: webImages.tvUnit,
   },
   {
     name: "Storage Bed Suite",
     category: "Bedroom Furniture",
     price: "From Rs. 1.4L",
-    image:
-      "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&w=1100&q=84",
+    image: webImages.bedStorage,
   },
 ] as const;
 
@@ -89,9 +80,11 @@ export function ProductDiscovery() {
                 What we make
               </h2>
             </div>
-            <Button className="hidden sm:inline-flex" variant="secondary">
-              View all
-              <ArrowUpRight className="size-4" aria-hidden="true" />
+            <Button asChild variant="secondary">
+              <a href={routes.products}>
+                View all
+                <ArrowUpRight className="size-4" aria-hidden="true" />
+              </a>
             </Button>
           </div>
 
@@ -136,9 +129,11 @@ export function ProductDiscovery() {
                 Ready to configure
               </h2>
             </div>
+            {/*
             <Button className="hidden sm:inline-flex" variant="secondary">
               Book visit
             </Button>
+            */}
           </div>
 
           <motion.div

@@ -1,6 +1,7 @@
 import products from "@/data/spacemint-products.json";
 import { routes } from "@/config/routes";
 import { kitchenImages, wardrobeImages } from "@/data/local-assets";
+import { webImages } from "@/data/web-images";
 
 export type CollectionProduct = {
   id: string;
@@ -116,8 +117,7 @@ export const collectionPages: CollectionPage[] = [
     title: "Living room furniture planned as complete compositions.",
     description:
       "Browse sofas, TV units, coffee tables, side tables, consoles, cabinets, shelves, and display storage for modern living rooms.",
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1800&q=84",
+    image: webImages.livingRoom,
     typesTitle: "Living room categories",
     types: [
       {
@@ -132,8 +132,7 @@ export const collectionPages: CollectionPage[] = [
         id: "tv-units",
         name: "TV Units",
         description: "Wall-mounted, floating, display, and storage-led TV unit compositions.",
-        image:
-          "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1000&q=82",
+        image: webImages.tvUnit,
         bestFor: "Media walls",
       },
       {
@@ -160,8 +159,7 @@ export const collectionPages: CollectionPage[] = [
         name: "Floating TV Unit",
         category: "TV Units",
         description: "Wall-mounted TV storage with open shelves and concealed cable zones.",
-        image:
-          "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1000&q=82",
+        image: webImages.tvUnit,
         href: routes.collection("living-room-furniture"),
         meta: "Made to measure",
       },
@@ -283,16 +281,14 @@ export const collectionPages: CollectionPage[] = [
     title: "Additional furniture for dining, study, and storage.",
     description:
       "Complete the home with dining tables, dining chairs, crockery units, study tables, bookshelves, shoe racks, and utility cabinets.",
-    image:
-      "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=1800&q=84",
+    image: webImages.otherFurniture,
     typesTitle: "Furniture categories",
     types: [
       {
         id: "dining",
         name: "Dining Furniture",
         description: "Dining sets, dining tables, chairs, benches, crockery units, and sideboards.",
-        image:
-          "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=1000&q=82",
+        image: webImages.otherFurniture,
         bestFor: "Meal zones",
       },
       {
@@ -319,8 +315,7 @@ export const collectionPages: CollectionPage[] = [
         name: "Dining Table Set",
         category: "Dining",
         description: "Dining sets available as compact, 4-seater, 6-seater, and larger configurations.",
-        image:
-          "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?auto=format&fit=crop&w=1000&q=82",
+        image: webImages.otherFurniture,
         href: routes.collection("other-furniture"),
         meta: "2 to 8 seater",
       },

@@ -17,6 +17,9 @@ export type AppRoute =
       id: string;
     }
   | {
+      type: "products";
+    }
+  | {
       hash: string;
       type: "section";
     };
@@ -27,6 +30,7 @@ export const routes = {
   collection: (id: string) => `#collection/${id}`,
   home: "#",
   product: (id: string) => `#product/${id}`,
+  products: "#products",
   section: (id: string) => `#${id}`,
 } as const;
 
@@ -41,6 +45,10 @@ export function parseAppHash(hash: string): AppRoute {
 
   if (hash === routes.checkout) {
     return { type: "checkout" };
+  }
+
+  if (hash === routes.products) {
+    return { type: "products" };
   }
 
   const productId = hash.match(/^#product\/(.+)$/)?.[1];
