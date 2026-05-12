@@ -697,6 +697,21 @@ export function App() {
     }
   }, [cartItems.length, currentPage, isPaymentGatewayOpen, navigate, orderConfirmation]);
 
+  useEffect(() => {
+    if (currentPage !== "kitchen" || location.hash !== "#kitchen-products") return;
+
+    const timer = window.setTimeout(() => {
+      const catalogue = document.getElementById("kitchen-products");
+      if (!catalogue) return;
+
+      const headerOffset = window.innerWidth <= 860 ? 66 : 76;
+      const top = catalogue.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [currentPage, location.hash]);
+
   const currentSlide = heroSlides[activeSlide];
   const currentSpace = homeSpaceSlides[activeSpace];
   const currentKitchen = kitchenDesigns[activeKitchen];
@@ -724,6 +739,73 @@ export function App() {
     activeKitchenProductSubcategory === "All" && allKitchenProductLimit < visibleKitchenProducts.length;
   const canShowFewerKitchenProducts =
     activeKitchenProductSubcategory === "All" && allKitchenProductLimit > 4;
+  const productDetailHighlights = activeDetailProduct
+    ? activeDetailProduct.specs.highlights ?? activeDetailProduct.specs.hardware
+    : [];
+  const productDetailSpecSections = activeDetailProduct
+    ? [
+        {
+          id: "detail-material",
+          icon: "material",
+          title: "Core Material",
+          summary: activeDetailProduct.specs.coreMaterial ?? "Core material to be confirmed",
+          rows: [
+            activeDetailProduct.specs.coreMaterial ?? "Core material to be confirmed",
+            "Factory-built carcass",
+            "Kitchen-grade modular body",
+          ],
+        },
+        {
+          id: "detail-dimensions",
+          icon: "dimensions",
+          title: "Dimensions",
+          summary: activeDetailProduct.size?.label ?? "Size to be confirmed",
+          rows: activeDetailProduct.size
+            ? [
+                `Width ${activeDetailProduct.size.width} ${activeDetailProduct.size.unit}`,
+                `Height ${activeDetailProduct.size.height} ${activeDetailProduct.size.unit}`,
+                `Depth ${activeDetailProduct.size.depth} ${activeDetailProduct.size.unit}`,
+              ]
+            : ["Final dimensions to be confirmed during site measurement"],
+        },
+        {
+          id: "detail-finish",
+          icon: "finish",
+          title: "Finish",
+          summary: selectedProductColour.label,
+          rows: [
+            activeDetailProduct.specs.finish ?? "Finish to be confirmed",
+            `Selected colour: ${selectedProductColour.label}`,
+            selectedProductColour.group,
+          ],
+        },
+        {
+          id: "detail-hardware",
+          icon: "hardware",
+          title: "Hardware & Comfort",
+          summary: activeDetailProduct.specs.hardware.length ? activeDetailProduct.specs.hardware.join(" / ") : "Hardware to be confirmed",
+          rows: activeDetailProduct.specs.hardware.length
+            ? activeDetailProduct.specs.hardware
+            : ["Hardware to be confirmed"],
+        },
+        {
+          id: "detail-highlights",
+          icon: "highlights",
+          title: "Product Highlights",
+          summary: productDetailHighlights.length ? productDetailHighlights[0] : "Highlights to be confirmed",
+          rows: productDetailHighlights.length
+            ? productDetailHighlights
+            : ["Highlights to be confirmed"],
+        },
+      ]
+    : [];
+  const renderSpecIcon = (icon: string) => {
+    if (icon === "material") return <Grid3X3 size={18} />;
+    if (icon === "dimensions") return <Ruler size={18} />;
+    if (icon === "finish") return <Sparkles size={18} />;
+    if (icon === "hardware") return <SlidersHorizontal size={18} />;
+    return <Check size={18} />;
+  };
   const showMoreKitchenProducts = () => {
     setAllKitchenProductLimit((limit) => Math.min(limit + 4, visibleKitchenProducts.length));
   };
@@ -802,7 +884,10 @@ export function App() {
         },
       ];
     });
+  };
 
+  const buyProductNow = (product: KitchenProduct, variant: string, colour: ProductColourOption) => {
+    addProductToCart(product, variant, colour);
     navigateCart();
   };
 
@@ -972,6 +1057,14 @@ export function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const navigateKitchenProducts = () => {
+    setActiveDetailProduct(null);
+    setIsMenuOpen(false);
+    setIsMegaMenuOpen(false);
+    setIsSearchOpen(false);
+    navigate("/kitchen#kitchen-products");
+  };
+
   const navigateWardrobe = () => {
     setActiveDetailProduct(null);
     setIsMenuOpen(false);
@@ -1082,7 +1175,7 @@ export function App() {
   };
 
   return (
-    <div className="site-shell">
+    <div className={currentPage === "product-detail" ? "site-shell product-detail-shell" : "site-shell"}>
       <header className="site-header" onMouseLeave={() => setIsMegaMenuOpen(false)}>
         <a className="brand-mark" href="#top" aria-label="Space Mint home" onClick={(event) => {
           event.preventDefault();
@@ -1997,6 +2090,10 @@ export function App() {
                     environment-image="neutral"
                     exposure="1"
                     field-of-view="28deg"
+                    max-camera-orbit="auto auto 12m"
+                    max-field-of-view="48deg"
+                    min-camera-orbit="auto auto 0.22m"
+                    min-field-of-view="8deg"
                     loading="eager"
                     reveal="auto"
                     shadow-intensity="0.9"
@@ -2028,6 +2125,10 @@ export function App() {
                   <p className="eyebrow">Module snapshot</p>
                   <h2>{activeDetailProduct.name}</h2>
                   <p>{activeDetailProduct.specs.summary}</p>
+                  <div className="detail-price-line">
+                    <span>Unit price</span>
+                    <strong>{formatCurrency(getKitchenProductPrice(activeDetailProduct))}</strong>
+                  </div>
                   <div className="detail-status-row">
                     <span>Plywood core</span>
                     <span>{activeDetailProduct.modelUrl ? "3D ready" : "3D pending"}</span>
@@ -2054,6 +2155,25 @@ export function App() {
                   </span>
                 </div>
 
+                <div className="detail-actions">
+                  <button
+                    className="primary-action dark"
+                    type="button"
+                    onClick={() => addProductToCart(activeDetailProduct, selectedProductVariant, selectedProductColour)}
+                  >
+                    Add to Cart
+                    <ArrowRight size={18} />
+                  </button>
+                  <button
+                    className="buy-now-button"
+                    type="button"
+                    onClick={() => buyProductNow(activeDetailProduct, selectedProductVariant, selectedProductColour)}
+                  >
+                    Buy Now
+                    <ShoppingBag size={18} />
+                  </button>
+                </div>
+
                 <div className="variant-section">
                   <h4>Choose a Variant</h4>
                   <div className="variant-grid">
@@ -2076,20 +2196,6 @@ export function App() {
                         </button>
                       );
                     })}
-                  </div>
-                </div>
-
-                <div className="variant-section">
-                  <h4>Manufacturing Material</h4>
-                  <div className="manufacturing-grid">
-                    <span>
-                      <small>Core material</small>
-                      {activeDetailProduct.specs.coreMaterial ?? "Core material to be confirmed"}
-                    </span>
-                    <span>
-                      <small>Finish</small>
-                      {activeDetailProduct.specs.finish ?? "Finish to be confirmed"}
-                    </span>
                   </div>
                 </div>
 
@@ -2123,47 +2229,64 @@ export function App() {
                   <p>{activeDetailProduct.size?.label ?? "Size to be confirmed"}</p>
                 </div>
 
-                <div className="variant-section">
-                  <h4>Specifications</h4>
+                <div className="detail-spec-map" aria-label="Product detail sections">
+                  {productDetailSpecSections.map((section, index) => (
+                    <a href={`#${section.id}`} key={section.id}>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      {section.title}
+                    </a>
+                  ))}
+                </div>
+
+                <div className="product-spec-card-grid">
+                  <section className="product-spec-card detail-description-section" id="detail-overview">
+                    <div className="product-spec-card-heading">
+                      <span>00</span>
+                      <div>{renderSpecIcon("highlights")}</div>
+                    </div>
+                    <h4>Overview</h4>
+                    <p>
+                      A made-to-order Space Mint kitchen module designed for clean alignment, daily durability
+                      and a refined built-in look. Configure the shutter variant and finish to match your kitchen
+                      palette before adding it to your estimate cart.
+                    </p>
+                    <div className="detail-feature-grid">
+                      <span>Factory-built plywood body</span>
+                      <span>Premium modular finish</span>
+                      <span>Soft neutral kitchen styling</span>
+                      <span>Ready for quotation flow</span>
+                    </div>
+                  </section>
+
+                  {productDetailSpecSections.map((section, index) => (
+                    <section className="product-spec-card" id={section.id} key={section.id}>
+                      <div className="product-spec-card-heading">
+                        <span>{String(index + 1).padStart(2, "0")}</span>
+                        <div>{renderSpecIcon(section.icon)}</div>
+                      </div>
+                      <h4>{section.title}</h4>
+                      <p>{section.summary}</p>
+                      <div className="product-spec-row-list">
+                        {section.rows.map((row) => (
+                          <span key={row}>
+                            <Check size={14} />
+                            {row}
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+
+                <div className="variant-section detail-spec-list-section">
+                  <h4>Quick Specifications</h4>
                   <div className="detail-spec-list">
                     <span>{activeDetailProduct.specs.coreMaterial ?? "Core material to be confirmed"}</span>
                     <span>{activeDetailProduct.specs.finish ?? "Finish to be confirmed"}</span>
-                    {(activeDetailProduct.specs.highlights ?? activeDetailProduct.specs.hardware).map((item) => (
+                    {productDetailHighlights.map((item) => (
                       <span key={item}>{item}</span>
                     ))}
                   </div>
-                </div>
-
-                <div className="detail-actions">
-                  <button
-                    className="primary-action dark"
-                    type="button"
-                    onClick={() => addProductToCart(activeDetailProduct, selectedProductVariant, selectedProductColour)}
-                  >
-                    Add to Cart
-                    <ArrowRight size={18} />
-                  </button>
-                  {activeDetailProduct.modelUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveModelColour(selectedProductColour);
-                        setActiveModelProduct(activeDetailProduct);
-                      }}
-                    >
-                      View 3D
-                    </button>
-                  ) : null}
-                  <a className="secondary-action light" href="#quote" onClick={(event) => {
-                    event.preventDefault();
-                    setActiveDetailProduct(null);
-                    navigateHome();
-                    window.setTimeout(() => {
-                      document.getElementById("quote")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }, 0);
-                  }}>
-                    Request Quote
-                  </a>
                 </div>
               </div>
             </div>
@@ -2179,7 +2302,7 @@ export function App() {
                 <span>Cart</span>
                 <h3>Your selected modules</h3>
               </div>
-              <button type="button" onClick={navigateKitchen}>
+              <button type="button" onClick={navigateKitchenProducts}>
                 <ChevronLeft size={16} />
                 Continue browsing
               </button>
@@ -2253,7 +2376,7 @@ export function App() {
                   <ShoppingBag size={30} />
                   <h4>Your cart is empty.</h4>
                   <p>Open a kitchen module and add a variant to begin checkout.</p>
-                    <button type="button" onClick={navigateKitchen}>
+                    <button type="button" onClick={navigateKitchenProducts}>
                     Continue browsing
                   </button>
                 </div>
