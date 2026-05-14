@@ -15,6 +15,10 @@ export type KitchenProduct = {
   modelUrl?: string;
   category: string;
   subcategory: string;
+  pricing?: {
+    basePrice?: number | null;
+    currency?: string | null;
+  };
   specs: {
     summary: string;
     coreMaterial: string | null;
@@ -66,6 +70,23 @@ const getModelUrl = (productCode: string) => {
 
   return modelUrlByFileBase[productCode] ?? (sketchupBase ? modelUrlByFileBase[sketchupBase] : undefined);
 };
+
+export const getKitchenProductModelUrl = (productCode: string, sourceUrl?: string | null) => {
+  const sourceBase = getModelBaseName(sourceUrl);
+
+  return (sourceBase ? modelUrlByFileBase[sourceBase] : undefined) ?? getModelUrl(productCode) ?? sourceUrl ?? undefined;
+};
+
+function getModelBaseName(sourceUrl?: string | null) {
+  if (!sourceUrl) {
+    return "";
+  }
+
+  const pathWithoutQuery = sourceUrl.split("?")[0] ?? sourceUrl;
+  const fileName = pathWithoutQuery.split("/").pop() ?? "";
+
+  return fileName.replace(/\.glb$/i, "");
+}
 
 const rawKitchenProducts: KitchenProduct[] = [
   {
@@ -341,5 +362,5 @@ const rawKitchenProducts: KitchenProduct[] = [
 export const kitchenProducts: KitchenProduct[] = rawKitchenProducts.map((product) => ({
   ...product,
   sketchupFile: sketchupFileByCode[product.code],
-  modelUrl: getModelUrl(product.code),
+  modelUrl: getKitchenProductModelUrl(product.code),
 }));
