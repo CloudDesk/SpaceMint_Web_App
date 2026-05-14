@@ -13,8 +13,9 @@ import { Container } from "@/components/primitives/container";
 import { Section } from "@/components/primitives/section";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/config/routes";
-import { collectionPages } from "@/data/collections";
+import { buildCollectionPages } from "@/data/collections";
 import type { CollectionProduct } from "@/data/collections";
+import { useProducts } from "@/hooks/use-products";
 import { fadeUp, staggerContainer } from "@/lib/animation";
 import { cn } from "@/lib/utils";
 
@@ -27,33 +28,39 @@ type CatalogItem = CollectionProduct & {
 type SortId = "featured" | "name" | "category";
 type ViewMode = "grid" | "compact";
 
-const catalogItems = collectionPages.flatMap((collection) =>
-  collection.products.map((product) => ({
-    ...product,
-    collectionId: collection.id,
-    collectionLabel: collection.label,
-    searchText: [
-      product.name,
-      product.category,
-      product.description,
-      product.meta,
-      collection.label,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase(),
-  })),
-);
-
-const categoryFilters = [
-  { id: "all", label: "All" },
-  ...collectionPages.map((collection) => ({
-    id: collection.id,
-    label: collection.label,
-  })),
-] as const;
-
 export function ProductListPage() {
+  const { products } = useProducts();
+  const collectionPages = useMemo(() => buildCollectionPages(products), [products]);
+  const catalogItems = useMemo(
+    () => collectionPages.flatMap((collection) =>
+      collection.products.map((product) => ({
+        ...product,
+        collectionId: collection.id,
+        collectionLabel: collection.label,
+        searchText: [
+          product.name,
+          product.category,
+          product.description,
+          product.meta,
+          collection.label,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase(),
+      })),
+    ),
+    [collectionPages],
+  );
+  const categoryFilters = useMemo(
+    () => [
+      { id: "all", label: "All" },
+      ...collectionPages.map((collection) => ({
+        id: collection.id,
+        label: collection.label,
+      })),
+    ],
+    [collectionPages],
+  );
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [sortId, setSortId] = useState<SortId>("featured");
@@ -83,7 +90,7 @@ export function ProductListPage() {
 
       return catalogItems.indexOf(first) - catalogItems.indexOf(second);
     });
-  }, [activeCategory, normalizedQuery, sortId]);
+  }, [activeCategory, catalogItems, normalizedQuery, sortId]);
 
   return (
     <article className="bg-background pt-20">

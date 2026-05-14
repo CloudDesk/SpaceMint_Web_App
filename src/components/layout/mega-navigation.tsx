@@ -1,8 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Container } from "@/components/primitives/container";
-import { megaMenuSections } from "@/config/navigation";
+import { buildMegaMenuSections } from "@/config/navigation";
+import { useProducts } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 
 type MegaNavigationProps = {
@@ -14,6 +15,8 @@ export function MegaNavigation({
   className,
   itemClassName,
 }: MegaNavigationProps) {
+  const { products } = useProducts();
+  const megaMenuSections = useMemo(() => buildMegaMenuSections(products), [products]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [currentHash, setCurrentHash] = useState(() => window.location.hash);
   const activeSection =

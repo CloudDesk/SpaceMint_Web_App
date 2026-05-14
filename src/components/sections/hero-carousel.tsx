@@ -65,14 +65,14 @@ export function HeroCarousel() {
 
   return (
     <section
-      className="relative min-h-svh overflow-hidden bg-primary"
+      className="relative aspect-video overflow-hidden bg-primary md:aspect-auto md:min-h-svh"
       aria-label="Space Mint interior film"
     >
       <video
         ref={videoRef}
         aria-label="Space Mint modular interior hero film"
         autoPlay
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-contain md:object-cover"
         loop
         muted
         playsInline

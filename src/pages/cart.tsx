@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Container } from "@/components/primitives/container";
 import { Section } from "@/components/primitives/section";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { useCart } from "@/context/cart-context";
 import { routes } from "@/config/routes";
 
 export function CartPage() {
-  const { cartCount, clearCart, items, removeItem, updateQuantity } = useCart();
+  const { cartCount, clearCart, items, removeItem, syncCartNow, syncStatus, updateQuantity } = useCart();
 
   return (
     <article className="bg-background pt-20">
@@ -28,8 +28,8 @@ export function CartPage() {
             <div>
               <h1 className="font-heading text-h1 font-light">Review your modules.</h1>
               <p className="mt-4 max-w-2xl text-lead text-muted-foreground">
-                Your selected modules are stored locally on this browser. Review quantities here,
-                then move to checkout when you are ready to place the order request.
+                Your selected modules are saved locally for instant updates and synced in the
+                background when the connection is available.
               </p>
             </div>
             <div className="rounded-sm border bg-background px-5 py-4">
@@ -141,9 +141,12 @@ export function CartPage() {
 
           <aside className="sticky top-28 grid gap-4">
             <div className="rounded-lg border bg-accent p-card-pad">
-              <p className="text-eyebrow font-semibold uppercase text-muted-foreground">
-                Order Summary
-              </p>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-eyebrow font-semibold uppercase text-muted-foreground">
+                  Order Summary
+                </p>
+                <CartSyncControl status={syncStatus} syncCartNow={syncCartNow} />
+              </div>
               <div className="mt-5 grid gap-3 text-sm">
                 <SummaryRow label="Products" value={String(items.length)} />
                 <SummaryRow label="Total quantity" value={String(cartCount)} />
@@ -164,6 +167,50 @@ export function CartPage() {
         </Container>
       </Section>
     </article>
+  );
+}
+
+function CartSyncControl({
+  status,
+  syncCartNow,
+}: {
+  status: "idle" | "syncing" | "synced" | "error";
+  syncCartNow: () => Promise<void>;
+}) {
+  if (status === "synced") {
+    return (
+      <span
+        aria-label="Cart synced"
+        className="grid size-8 place-items-center rounded-sm border bg-background text-foreground"
+        title="Cart synced"
+      >
+        <Check className="size-4" aria-hidden="true" />
+      </span>
+    );
+  }
+
+  if (status === "syncing") {
+    return (
+      <span
+        aria-label="Cart syncing"
+        className="grid size-8 place-items-center rounded-sm border bg-background text-muted-foreground"
+        title="Cart syncing"
+      >
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      </span>
+    );
+  }
+
+  return (
+    <button
+      aria-label="Sync cart"
+      className="grid size-8 place-items-center rounded-sm border bg-background text-muted-foreground transition-colors hover:text-foreground"
+      onClick={() => void syncCartNow()}
+      title="Sync cart"
+      type="button"
+    >
+      <RefreshCw className="size-4" aria-hidden="true" />
+    </button>
   );
 }
 

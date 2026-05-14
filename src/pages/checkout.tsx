@@ -8,7 +8,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Container } from "@/components/primitives/container";
 import { Section } from "@/components/primitives/section";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import {
   ModalTitle,
 } from "@/components/ui/modal";
 import type { CheckoutDetails, StoredOrder } from "@/context/cart-context";
+import { useAuth } from "@/context/auth-context";
+import type { CustomerUser } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
 import { routes } from "@/config/routes";
 import { scrollToPageTop } from "@/lib/scroll";
@@ -48,8 +50,11 @@ const paymentMethods = [
 type PaymentMethodId = (typeof paymentMethods)[number]["id"];
 
 export function CheckoutPage() {
+  const { isAuthenticated, openAuthModal, user } = useAuth();
   const { cartCount, checkoutDetails, items, placeOrder, saveCheckoutDetails } = useCart();
-  const [formData, setFormData] = useState(checkoutDetails);
+  const [formData, setFormData] = useState(() =>
+    mergeCheckoutDetailsWithUser(checkoutDetails, user),
+  );
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("upi");
   const [placedOrder, setPlacedOrder] = useState<StoredOrder | null>(null);
@@ -64,9 +69,42 @@ export function CheckoutPage() {
     saveCheckoutDetails(nextFormData);
   };
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setFormData((currentFormData) => {
+      const nextFormData = mergeCheckoutDetailsWithUser(currentFormData, user);
+
+      if (isSameCheckoutDetails(currentFormData, nextFormData)) {
+        return currentFormData;
+      }
+
+      saveCheckoutDetails(nextFormData);
+      return nextFormData;
+    });
+  }, [
+    saveCheckoutDetails,
+    user?.firstname,
+    user?.id,
+    user?.lastname,
+    user?.useremail,
+    user?.usermobilenumber,
+  ]);
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     saveCheckoutDetails(formData);
+
+    if (!isAuthenticated) {
+      openAuthModal({
+        intent: "checkout",
+        onSuccess: () => setIsPaymentModalOpen(true),
+      });
+      return;
+    }
+
     setIsPaymentModalOpen(true);
   };
 
@@ -297,8 +335,8 @@ function PaymentIntegrationModal({
 
   return (
     <Modal open={isOpen} onOpenChange={onOpenChange}>
-      <ModalContent className="max-w-4xl gap-0 overflow-hidden p-0">
-        <div className="grid bg-accent lg:grid-cols-[0.42fr_0.58fr]">
+      <ModalContent className="max-h-[calc(100dvh-1rem)] max-w-4xl gap-0 overflow-hidden p-0">
+        <div className="grid max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain bg-accent lg:grid-cols-[0.42fr_0.58fr]">
           <div className="border-b bg-primary p-6 text-primary-foreground lg:border-b-0 lg:border-r sm:p-8">
             <div className="grid size-12 place-items-center rounded-full border border-white/25">
               <BadgeIndianRupee className="size-5" aria-hidden="true" />
@@ -508,5 +546,35 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <strong className="font-medium">{value}</strong>
     </p>
+  );
+}
+
+function mergeCheckoutDetailsWithUser(
+  details: CheckoutDetails,
+  user: CustomerUser | null,
+): CheckoutDetails {
+  if (!user) {
+    return details;
+  }
+
+  const fullName = [user.firstname, user.lastname]
+    .map((value) => value?.trim())
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    ...details,
+    email: user.useremail?.trim() || details.email,
+    fullName: fullName || details.fullName,
+    phone: user.usermobilenumber ? String(user.usermobilenumber) : details.phone,
+  };
+}
+
+function isSameCheckoutDetails(
+  currentDetails: CheckoutDetails,
+  nextDetails: CheckoutDetails,
+) {
+  return (Object.keys(currentDetails) as Array<keyof CheckoutDetails>).every(
+    (key) => currentDetails[key] === nextDetails[key],
   );
 }

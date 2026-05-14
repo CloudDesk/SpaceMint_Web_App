@@ -1,4 +1,4 @@
-import products from "@/data/spacemint-products.json";
+import type { Product } from "@/data/products";
 import { kitchenImages, wardrobeImages } from "@/data/local-assets";
 import { routes } from "@/config/routes";
 import { webImages } from "@/data/web-images";
@@ -39,24 +39,85 @@ const kitchenSubcategoryOrder = [
   "Lift-up wall units",
 ];
 
-const kitchenColumns = kitchenSubcategoryOrder
-  .map((subcategory) => {
-    const items = products
-      .filter((product) => product.subcategory === subcategory)
-      .map((product) => ({
-        href: routes.product(product.id),
-        label: product.name,
-        meta: product.size?.label ?? product.code ?? undefined,
-      }));
+const categoryAliases: Record<string, string[]> = {
+  "bedroom-wardrobes": ["bedroom", "bedroom_wardrobes", "bedroom-wardrobes", "bedroom wardrobes"],
+  kitchens: ["kitchen", "kitchens"],
+  "living-room-furniture": [
+    "living room",
+    "living_room",
+    "living-room",
+    "living room furniture",
+    "living-room-furniture",
+  ],
+  "other-furniture": ["other", "other_furniture", "other-furniture", "other furniture"],
+};
 
-    return {
-      items,
-      title: subcategory,
-    };
-  })
-  .filter((column) => column.items.length > 0);
+function normalizeKey(value: string | null | undefined) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
 
-export const megaMenuSections: MegaMenuSection[] = [
+function buildProductColumns(
+  products: Product[],
+  sectionId: string,
+  fallbackColumns: MegaMenuColumn[],
+  preferredOrder: string[] = [],
+) {
+  const acceptedKeys = new Set(
+    (categoryAliases[sectionId] ?? [sectionId]).map(normalizeKey),
+  );
+  const sectionProducts = products.filter((product) =>
+    acceptedKeys.has(normalizeKey(product.categoryId ?? product.category)),
+  );
+
+  if (!sectionProducts.length) {
+    return fallbackColumns;
+  }
+
+  const orderIndex = new Map(
+    preferredOrder.map((subcategory, index) => [normalizeKey(subcategory), index]),
+  );
+  const groups = new Map<string, Product[]>();
+
+  sectionProducts.forEach((product) => {
+    const subcategory = product.subcategoryId ?? product.subcategory ?? "Products";
+    groups.set(subcategory, [...(groups.get(subcategory) ?? []), product]);
+  });
+
+  return [...groups.entries()]
+    .sort(([first], [second]) => {
+      const firstOrder = orderIndex.get(normalizeKey(first)) ?? Number.MAX_SAFE_INTEGER;
+      const secondOrder = orderIndex.get(normalizeKey(second)) ?? Number.MAX_SAFE_INTEGER;
+
+      if (firstOrder !== secondOrder) {
+        return firstOrder - secondOrder;
+      }
+
+      return first.localeCompare(second);
+    })
+    .map(([title, items]) => ({
+      title,
+      items: items
+        .slice()
+        .sort((first, second) => first.serialNumber - second.serialNumber)
+        .map((product) => ({
+          href: routes.product(product.id),
+          label: product.name,
+          meta: product.size?.label ?? product.code ?? undefined,
+        })),
+    }));
+}
+
+export function buildMegaMenuSections(products: Product[] = []): MegaMenuSection[] {
+  const kitchenColumns = buildProductColumns(
+    products,
+    "kitchens",
+    [],
+    kitchenSubcategoryOrder,
+  );
+
+  const sections: MegaMenuSection[] = [
   {
     columns: kitchenColumns,
     eyebrow: "20 configurable modules",
@@ -184,7 +245,15 @@ export const megaMenuSections: MegaMenuSection[] = [
     summary:
       "Dining, study, storage, and accent pieces designed to sit with the main room systems.",
   },
-];
+  ];
+
+  return sections.map((section) => ({
+    ...section,
+    columns: buildProductColumns(products, section.id, section.columns, kitchenSubcategoryOrder),
+  }));
+}
+
+export const megaMenuSections: MegaMenuSection[] = buildMegaMenuSections();
 
 export const primaryNavigation = megaMenuSections
   .filter((section) => section.showInHeader)

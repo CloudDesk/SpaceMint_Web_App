@@ -89,10 +89,10 @@ export function ProductMediaCarousel({
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="grid min-w-0 grid-cols-1 gap-3">
       <div
         className={cn(
-          "relative overflow-hidden rounded-lg border bg-accent",
+          "relative min-w-0 max-w-full overflow-hidden rounded-lg border bg-accent",
           activeSlide.kind === "model"
             ? "min-h-[min(34rem,72svh)] lg:min-h-[34rem]"
             : "h-[26rem] lg:h-[34rem]",
@@ -132,7 +132,7 @@ export function ProductMediaCarousel({
       </div>
 
       {slides.length > 1 ? (
-        <div className="flex gap-2 overflow-x-auto pb-1" data-lenis-prevent>
+        <div className="flex max-w-full gap-2 overflow-x-auto pb-1" data-lenis-prevent>
           {slides.map((slide, index) => {
             const isActive = index === activeIndex;
 

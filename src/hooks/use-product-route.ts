@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { parseAppHash } from "@/config/routes";
-import { collectionPages } from "@/data/collections";
-import products from "@/data/spacemint-products.json";
+import { buildCollectionPages } from "@/data/collections";
+import type { Product } from "@/data/products";
 import {
   markNextRouteForRestore,
   markNextRouteForTop,
   saveRouteScrollPosition,
 } from "@/lib/scroll";
 
-export function useAppRoute() {
+export function useAppRoute(products: Product[] = []) {
   const [hash, setHash] = useState(() => window.location.hash);
   const previousHashRef = useRef(hash);
 
@@ -49,8 +49,10 @@ export function useAppRoute() {
   }, []);
 
   const route = parseAppHash(hash);
+  const collectionPages = buildCollectionPages(products);
   const productId = route.type === "product" ? route.id : null;
-  const product = products.find((item) => item.id === productId) ?? null;
+  const product =
+    products.find((item) => item.id === productId || item.code === productId) ?? null;
   const collectionId = route.type === "collection" ? route.id : null;
   const collection = collectionPages.find((item) => item.id === collectionId) ?? null;
   const isCart = route.type === "cart";

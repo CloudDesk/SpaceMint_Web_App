@@ -11,10 +11,9 @@ import {
   ModalTrigger,
 } from "@/components/ui/modal";
 import { routes } from "@/config/routes";
-import products from "@/data/spacemint-products.json";
+import type { Product } from "@/data/products";
+import { useProducts } from "@/hooks/use-products";
 import { navigateToHash } from "@/lib/scroll";
-
-type Product = (typeof products)[number];
 
 type ProductSearchModalProps = {
   triggerClassName?: string;
@@ -24,12 +23,13 @@ const FEATURED_RESULT_COUNT = 6;
 const MAX_RESULT_COUNT = 12;
 
 export function ProductSearchModal({ triggerClassName }: ProductSearchModalProps) {
+  const { products } = useProducts();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const normalizedQuery = normalizeSearchValue(query);
   const results = useMemo(
-    () => getProductSearchResults(normalizedQuery),
-    [normalizedQuery],
+    () => getProductSearchResults(normalizedQuery, products),
+    [normalizedQuery, products],
   );
   const isSearching = normalizedQuery.length > 0;
 
@@ -162,7 +162,7 @@ export function ProductSearchModal({ triggerClassName }: ProductSearchModalProps
   );
 }
 
-function getProductSearchResults(query: string) {
+function getProductSearchResults(query: string, products: Product[]) {
   if (!query) {
     return products.slice(0, FEATURED_RESULT_COUNT).map((product) => ({
       product,

@@ -1,4 +1,4 @@
-import products from "@/data/spacemint-products.json";
+import type { Product } from "@/data/products";
 import { routes } from "@/config/routes";
 import { kitchenImages, wardrobeImages } from "@/data/local-assets";
 import { webImages } from "@/data/web-images";
@@ -43,17 +43,68 @@ const kitchenModuleImages: Record<string, string> = {
   "Lift-up wall units": kitchenImages.lShapeMono,
 };
 
-const kitchenProducts: CollectionProduct[] = products.map((product) => ({
-  id: product.id,
-  name: product.name,
-  category: product.subcategory,
-  description: product.specs.summary,
-  image: kitchenModuleImages[product.subcategory] ?? kitchenModuleImages["Wall units"],
-  href: routes.product(product.id),
-  meta: product.size?.label ?? product.code ?? undefined,
-}));
+const collectionCategoryAliases: Record<string, string[]> = {
+  "bedroom-wardrobes": ["bedroom", "bedroom wardrobes", "bedroom-wardrobes", "bedroom_wardrobes"],
+  kitchens: ["kitchen", "kitchens"],
+  "living-room-furniture": [
+    "living room",
+    "living room furniture",
+    "living-room-furniture",
+    "living_room",
+  ],
+  "other-furniture": ["other", "other furniture", "other-furniture", "other_furniture"],
+};
 
-export const collectionPages: CollectionPage[] = [
+function normalizeCollectionKey(value: string | null | undefined) {
+  return String(value ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function getProductImage(product: Product, collectionId: string) {
+  if (collectionId === "kitchens") {
+    return kitchenModuleImages[product.subcategory] ?? kitchenModuleImages["Wall units"];
+  }
+
+  if (collectionId === "bedroom-wardrobes") {
+    return wardrobeImages.hinged;
+  }
+
+  if (collectionId === "living-room-furniture") {
+    return webImages.livingRoom;
+  }
+
+  return webImages.otherFurniture;
+}
+
+function buildCollectionProducts(products: Product[], collectionId: string): CollectionProduct[] {
+  const acceptedKeys = new Set(
+    (collectionCategoryAliases[collectionId] ?? [collectionId]).map(normalizeCollectionKey),
+  );
+
+  return products
+    .filter((product) =>
+      acceptedKeys.has(normalizeCollectionKey(product.categoryId ?? product.category)),
+    )
+    .sort((first, second) => first.serialNumber - second.serialNumber)
+    .map((product) => ({
+      id: product.id,
+      name: product.name,
+      category: product.subcategory,
+      description: product.specs.summary,
+      image: getProductImage(product, collectionId),
+      href: routes.product(product.id),
+      meta: product.size?.label ?? product.code ?? undefined,
+    }));
+}
+
+export function buildCollectionPages(products: Product[] = []): CollectionPage[] {
+  const kitchenProducts = buildCollectionProducts(products, "kitchens");
+  const livingProducts = buildCollectionProducts(products, "living-room-furniture");
+  const bedroomProducts = buildCollectionProducts(products, "bedroom-wardrobes");
+  const otherProducts = buildCollectionProducts(products, "other-furniture");
+
+  return [
   {
     id: "kitchens",
     label: "Kitchens",
@@ -153,47 +204,7 @@ export const collectionPages: CollectionPage[] = [
       },
     ],
     productsTitle: "Living room products",
-    products: [
-      {
-        id: "living-tv-unit",
-        name: "Floating TV Unit",
-        category: "TV Units",
-        description: "Wall-mounted TV storage with open shelves and concealed cable zones.",
-        image: webImages.tvUnit,
-        href: routes.collection("living-room-furniture"),
-        meta: "Made to measure",
-      },
-      {
-        id: "living-sofa",
-        name: "Modular Sofa",
-        category: "Sofas & Seating",
-        description: "Configurable seating for compact and large living rooms.",
-        image:
-          "https://images.unsplash.com/photo-1616046229478-9901c5536a45?auto=format&fit=crop&w=1000&q=82",
-        href: routes.collection("living-room-furniture"),
-        meta: "L-shape / straight",
-      },
-      {
-        id: "living-coffee-table",
-        name: "Coffee Table",
-        category: "Tables",
-        description: "Low table options for seating zones, paired with side tables.",
-        image:
-          "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1000&q=82",
-        href: routes.collection("living-room-furniture"),
-        meta: "Wood / stone top",
-      },
-      {
-        id: "living-display-unit",
-        name: "Display Storage Unit",
-        category: "Cabinets & Shelves",
-        description: "A mix of closed storage, bookshelves, display niches, and wall shelves.",
-        image:
-          "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1000&q=82",
-        href: routes.collection("living-room-furniture"),
-        meta: "Open + closed",
-      },
-    ],
+    products: livingProducts,
   },
   {
     id: "bedroom-wardrobes",
@@ -235,44 +246,7 @@ export const collectionPages: CollectionPage[] = [
       },
     ],
     productsTitle: "Bedroom products",
-    products: [
-      {
-        id: "bedroom-hinged-wardrobe",
-        name: "Full Height Hinged Wardrobe",
-        category: "Wardrobes",
-        description: "Made-to-measure wardrobe with internal shelves, drawers, and hanging sections.",
-        image: wardrobeImages.hinged,
-        href: routes.collection("bedroom-wardrobes"),
-        meta: "1 to 4+ door",
-      },
-      {
-        id: "bedroom-sliding-wardrobe",
-        name: "Sliding Door Wardrobe",
-        category: "Wardrobes",
-        description: "Space-saving wardrobe solution with clean sliding fronts.",
-        image: wardrobeImages.sliding,
-        href: routes.collection("bedroom-wardrobes"),
-        meta: "Custom width",
-      },
-      {
-        id: "bedroom-storage-bed",
-        name: "Storage Bed",
-        category: "Beds",
-        description: "Bed system with storage options for compact and master bedrooms.",
-        image: wardrobeImages.loft,
-        href: routes.collection("bedroom-wardrobes"),
-        meta: "Hydraulic option",
-      },
-      {
-        id: "bedroom-dresser",
-        name: "Dressing Table",
-        category: "Bedroom Tables",
-        description: "Mirror-ready dresser with drawers and utility storage.",
-        image: wardrobeImages.fluted,
-        href: routes.collection("bedroom-wardrobes"),
-        meta: "Drawer storage",
-      },
-    ],
+    products: bedroomProducts,
   },
   {
     id: "other-furniture",
@@ -309,46 +283,9 @@ export const collectionPages: CollectionPage[] = [
       },
     ],
     productsTitle: "Furniture products",
-    products: [
-      {
-        id: "other-dining-table",
-        name: "Dining Table Set",
-        category: "Dining",
-        description: "Dining sets available as compact, 4-seater, 6-seater, and larger configurations.",
-        image: webImages.otherFurniture,
-        href: routes.collection("other-furniture"),
-        meta: "2 to 8 seater",
-      },
-      {
-        id: "other-crockery-unit",
-        name: "Crockery Unit",
-        category: "Dining Storage",
-        description: "Display and closed storage for dining and kitchen-adjacent spaces.",
-        image:
-          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=82",
-        href: routes.collection("other-furniture"),
-        meta: "Display storage",
-      },
-      {
-        id: "other-study-table",
-        name: "Study Table",
-        category: "Study",
-        description: "Compact desks, wall-mounted study units, and work-from-home tables.",
-        image:
-          "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1000&q=82",
-        href: routes.collection("other-furniture"),
-        meta: "Compact / wall mounted",
-      },
-      {
-        id: "other-shoe-rack",
-        name: "Shoe Rack",
-        category: "Storage",
-        description: "Entryway storage for shoes, accessories, and everyday utility.",
-        image:
-          "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1000&q=82",
-        href: routes.collection("other-furniture"),
-        meta: "Entry storage",
-      },
-    ],
+    products: otherProducts,
   },
-];
+  ];
+}
+
+export const collectionPages: CollectionPage[] = buildCollectionPages();

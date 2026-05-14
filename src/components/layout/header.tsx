@@ -1,6 +1,7 @@
-import { Menu, ShoppingBag } from "lucide-react";
+import { Menu, ShoppingBag, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
 import {
   Drawer,
@@ -17,6 +18,7 @@ import { ProductSearchModal } from "@/components/layout/product-search-modal";
 import { routes } from "@/config/routes";
 
 export function Header() {
+  const { isAuthenticated, openAuthModal, user } = useAuth();
   const { cartCount } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -88,6 +90,22 @@ export function Header() {
         <div className="flex items-center justify-self-end gap-2">
           <ProductSearchModal triggerClassName={headerIconClass} />
           <Button
+            aria-label={isAuthenticated ? "Open profile" : "Sign in"}
+            className={headerIconClass}
+            onClick={() => openAuthModal({ intent: "profile" })}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            {isAuthenticated ? (
+              <span className="text-xs font-semibold uppercase">
+                {getCustomerInitials(user?.firstname, user?.lastname, user?.useremail)}
+              </span>
+            ) : (
+              <UserRound className="size-4" aria-hidden="true" />
+            )}
+          </Button>
+          <Button
             asChild
             aria-label="Cart"
             className={headerIconClass}
@@ -146,4 +164,17 @@ export function Header() {
       </Container>
     </header>
   );
+}
+
+function getCustomerInitials(firstname?: string, lastname?: string, email?: string) {
+  const initials = [firstname, lastname]
+    .filter(Boolean)
+    .map((value) => value?.trim()[0])
+    .join("");
+
+  if (initials) {
+    return initials.slice(0, 2);
+  }
+
+  return email?.trim()[0] ?? "U";
 }
