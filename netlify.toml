@@ -1,9 +1,27 @@
 [build]
-  command = "npm run build"
+  command = "npm run build:prod"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
+
+[context.production]
+  command = "npm run build:prod"
+
+[context.deploy-preview]
+  command = "npm run build:sit"
+
+[context.branch-deploy]
+  command = "npm run build:sit"
+
+[context.dev]
+  command = "npm run build:dev"
+
+[context.sit]
+  command = "npm run build:sit"
+
+[context.uat]
+  command = "npm run build:uat"
 
 [[redirects]]
   from = "/*"
