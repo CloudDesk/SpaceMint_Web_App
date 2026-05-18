@@ -1,18 +1,18 @@
 [build]
-  command = "npm run build:prod"
+  command = "npm run build:netlify"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [context.production]
-  command = "npm run build:prod"
+  command = "npm run build:netlify"
 
 [context.deploy-preview]
-  command = "npm run build:sit"
+  command = "npm run build:netlify"
 
 [context.branch-deploy]
-  command = "npm run build:sit"
+  command = "npm run build:netlify"
 
 [context.dev]
   command = "npm run build:dev"
